@@ -11,9 +11,7 @@ pub struct Hello {
 impl Hello {
     // Generate a minimal response (HashMap can serialise into json)
     pub fn reply(&self) -> HashMap<String, String> {
-        let mut data = HashMap::new();
-        data.insert("message".to_string(), format!("Hello {}!", self.name));
-        data
+        HashMap::from([("message".to_string(), format!("Hello {}!", self.name))])
     }
 }
 
