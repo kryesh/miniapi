@@ -24,9 +24,15 @@ export TARGET=x86_64-unknown-linux-musl
 rustup target add x86_64-unknown-linux-musl
 
 #Configure Rust/C/C++ optimisations
-export CFLAGS="-march=${TARGET_CPU} -mtune=${TARGET_CPU} -O3 -flto -pipe"
+if [ "$TARGET_CPU" == "generic" ]
+then
+    export CFLAGS="-mtune=${TARGET_CPU} -O3 -flto -pipe"
+else
+    export CFLAGS="-march=${TARGET_CPU} -mtune=${TARGET_CPU} -O3 -flto -pipe"
+fi
+
 export CXXFLAGS="${CFLAGS}"
-export RUSTFLAGS="-C opt-level=3 -C target-cpu=${TARGET_CPU} -C target-feature=+crt-static -C link-self-contained=yes -C linker-plugin-lto -C linker=clang-${LLVM_VERSION} -C link-arg=-fuse-ld=lld-${LLVM_VERSION} -C link-arg=-Wl,-O3,--sort-common,--as-needed,--lto-partitions=1"
+export RUSTFLAGS="-C opt-level=3 -C target-cpu=${TARGET_CPU} -C target-feature=+crt-static -C link-self-contained=yes -C linker-plugin-lto -C linker=clang-${LLVM_VERSION} -C link-arg=-fuse-ld=lld-${LLVM_VERSION} -C link-arg=-Wl,-O3,--sort-common,--as-needed,--lto-partitions=1,--lto-O3,-s"
 
 echo
 echo "Building with environment:"
@@ -36,16 +42,13 @@ export
 cargo clean
 cargo update
 
-#Enable build-std to minimise binary size + LTO across standard library if using nightly; otherwise build normally
 if [ "$CHANNEL" == "nightly" ]
 then
+    #Enable build-std to minimise binary size + LTO across standard library if using nightly
     cargo +nightly build -Z build-std-features=panic_immediate_abort -Z build-std=panic_abort,core,std,alloc --target ${TARGET} --release
 else
     cargo build --target ${TARGET} --release
 fi
-
-#Strip binary
-strip target/${TARGET}/release/${OUTFILE}
 
 echo
 echo "Built $OUTFILE for target cpu $TARGET_CPU"

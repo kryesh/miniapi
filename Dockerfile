@@ -3,10 +3,10 @@ FROM docker.io/rust AS builder
 ARG OUTFILE=miniapi
 
 #CPU to optimise for
-ARG TARGET_CPU=native
+ARG TARGET_CPU=generic
 
 #Comment out if you want top use stable channel
-ARG CHANNEL=nightly
+#ARG CHANNEL=nightly
 
 WORKDIR /build
 
